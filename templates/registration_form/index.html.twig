@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Register{% endblock %}
+
+{% block body %}
+       
+
+    {{ form_errors(registrationForm) }}
+    <div class="container">
+        
+        <p>Remplissez le formulaire ci-dessous pour vous inscrire</p>
+    {{ form_start(registrationForm) }}   
+       
+        {{ form_row(registrationForm.firstname, { 'label': 'Prénom' }) }}
+        {{ form_row(registrationForm.lastname, { 'label': 'Nom' }) }}
+        {{ form_row(registrationForm.address, { 'label': 'Adresse' }) }}
+        {{ form_row(registrationForm.cp, { 'label': 'Code Postal' }) }}
+        {{ form_row(registrationForm.town, { 'label': 'Ville' }) }}
+        {{ form_row(registrationForm.country, { 'label': 'Pays' }) }}
+        {{ form_row(registrationForm.phoneNumber, { 'label': 'Téléphone' }) }}
+        {{ form_row(registrationForm.email) }}
+        {{ form_row(registrationForm.plainPassword) }}
+        {# {{ form_row(registrationForm.agreeTerms, {'label':"J'accepte les conditions"}) }} #}
+            <button type="submit" class="btn">S'inscrire</button>
+         {{ form_end(registrationForm) }}
+
+ </div>
+
+{% endblock %}
