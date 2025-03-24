@@ -4,7 +4,3 @@ controllers:
         namespace: App\Controller
     type: attribute
 
-api_register:
-    path: /api/register
-    controller: App\Controller\ApiController::register
-    methods: POST
