@@ -5,7 +5,7 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -20,7 +20,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
 /**********Email************/
     #[ORM\Column(length: 180)]
-    
+    #[Assert\NotNull(
+        message: 'Le champ ne doit pas être vide',
+    )]
+    #[Assert\Email(
+        message: 'L\'email saisi: {{ value }} n\'est pas valide.',
+        )]
     private ?string $email = null;
 
     #[ORM\Column]
@@ -35,30 +40,84 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /*********FIRSTNAME*****************/
     #[ORM\Column(length: 20)]
+    #[Assert\NotNull(
+        message: 'Le champ ne doit pas être vide',
+    )]
+    #[Assert\Type('string')]
+    #[Assert\Length(
+        min: 2,
+        max: 20,
+        minMessage: 'Le nom saisi doit avoir minimum {{ limit }} caractères',
+        maxMessage: 'Le nom ne doit pas dépasser {{ limit }} caractères',
+    )]
     private ?string $firstname = null;
 
     /*********LASTNAME*****************/
     #[ORM\Column(length: 20)]
-    private ?string $lastname = null;
+    #[Assert\NotNull(
+        message: 'Le champ ne doit pas être vide',
+    )]
+    #[Assert\Type('string')]
+    #[Assert\Length(
+        min: 2,
+        max: 20,
+        minMessage: 'Le prénom saisi doit avoir minimum {{ limit }} caractères',
+        maxMessage: 'Le prénom ne doit pas dépasser {{ limit }} caractères',
+    )]
+    private ?string $lastname = 'Doe';
 
     /*********ADDRESS*****************/
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotNull(
+        message: 'Le champ ne doit pas être vide',  
+    )]
+    #[Assert\Positive]
+    #[Assert\Regex(pattern:'/^[0-9 ]{1,3}\s[a-zA-Z ]{2,}$/')]
     private ?string $address = null;
 
     /*********CP*****************/
     #[ORM\Column]
+    #[Assert\NotNull(
+        message: 'Le champ ne doit pas être vide',
+    )]
+    #[Assert\Type(
+        type: 'integer',
+        message: 'la valeur saisie {{ value }} n\'est pas valide, des {{ type }} sont requis.',
+    )]
+    #[Assert\Positive]
+    #[Assert\Regex(pattern:'/^[0-9]{5}$/')]
     private ?int $cp = null;
 
     /*********TOWN*****************/
     #[ORM\Column(length: 30)]
+    #[Assert\NotNull(
+        message: 'Le champ ne doit pas être vide',
+    )]
+    #[Assert\Type('string')]
+    #[Assert\Regex(pattern:'/[a-zA-Z]{1,}$/')]
     private ?string $town = null;
 
     /*********COUNTRY*****************/
     #[ORM\Column(length: 25)]
+    #[Assert\NotNull(
+        message: 'Le champ ne doit pas être vide',
+    )]
+    #[Assert\Country]
+    #[Assert\Type('string')]
+    #[Assert\Regex(pattern:'/[a-zA-Z]{1,}$/')]
     private ?string $country = null;
 
     /*********PHONE NUMBER*****************/
     #[ORM\Column]
+    #[Assert\NotNull(
+        message: 'Le champ ne doit pas être vide',
+    )]
+    #[Assert\Type(
+        type: 'integer',
+        message: 'la valeur saisie {{ value }} n\'est pas valide, des {{ type }} sont requis.',
+    )]
+    #[Assert\Positive]
+    #[Assert\Regex(pattern: "/^(?:\+?\d{1,3})?\s?\d{9,15}$/", message: 'Le numéro de téléphone saisi n\'est pas valide')]
     private ?int $phoneNumber = null;
 
     /*********CREATED AT*****************/
