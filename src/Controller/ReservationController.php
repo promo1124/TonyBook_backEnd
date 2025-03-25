@@ -17,7 +17,7 @@ class ReservationController extends AbstractController
     #[Route('/reservation', methods: ['GET'])]
     public function getReservation(ReservationsRepository $reservationsRepository, SerializerInterface $serializer): Response
     {
-        $json = $serializer->serialize($reservationsRepository->findAll(), 'json');
+        $json = $serializer->serialize($reservationsRepository->findAll(), 'json', ['groups' => 'reservation:read']);
 
         return new JsonResponse($json, Response::HTTP_OK, [], true);
     }
@@ -32,7 +32,7 @@ public function showReservation(Reservation $reservation, SerializerInterface $s
         'status' => $reservation->getStatus(),
     ];
 
-    $json = $serializer->serialize($data, 'json');
+    $json = $serializer->serialize($data, 'json', ['groups' => 'reservation:read']);
     return new JsonResponse($json, Response::HTTP_OK, [], true);
 }
 
