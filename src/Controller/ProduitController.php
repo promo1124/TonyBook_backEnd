@@ -7,6 +7,7 @@ use App\Form\ProduitType;
 use App\Repository\ProduitRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -77,5 +78,24 @@ final class ProduitController extends AbstractController
         }
 
         return $this->redirectToRoute('app_produit_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/search', name: 'app_produit_search', methods: ['GET'])]
+    public function search(Request $request, ProduitRepository $produitRepository): JsonResponse {
+        $criteria = $request->query->all(); 
+        $produits = $produitRepository->findByCriteria($criteria);
+    
+        $data = array_map(function ($produit) {
+            return [
+                'id' => $produit->getId(),
+                'name' => $produit->getName(),
+                'price' => $produit->getPrice(),
+                'description' => $produit->getDescription(),
+                'photo' => $produit->getPhoto(),
+                'tarif' => $produit->getTarif()
+            ];
+        }, $produits);
+
+        return new JsonResponse($data);
     }
 }
