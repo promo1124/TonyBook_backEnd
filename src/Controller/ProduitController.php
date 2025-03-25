@@ -83,4 +83,22 @@ final class ProduitController extends AbstractController
 
         return $this->redirectToRoute('app_produit_index', [], Response::HTTP_SEE_OTHER);
     }
+
+    #[Route('/search/ok', name: 'app_produit_search', methods: ['GET'])]
+    public function search(Request $request, ProduitRepository $produitRepository): JsonResponse {
+        $criteria = $request->query->all(); 
+        $produits = $produitRepository->findByCriteria($criteria);
+    
+        $data = array_map(function ($produit) {
+            return [
+                'id' => $produit->getId(),
+                'titre' => $produit->getTitre(),               
+                'description' => $produit->getDescription(),
+                'photo' => $produit->getPhoto(),
+                'tarif' => $produit->getTarif()
+            ];
+        }, $produits);
+
+        return new JsonResponse($data);
+    }
 }
