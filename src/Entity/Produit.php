@@ -4,6 +4,11 @@ namespace App\Entity;
 
 use App\Repository\ProduitRepository;
 use Doctrine\ORM\Mapping as ORM;
+// use PhpParser\Node\Scalar\MagicConst\File;
+
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: ProduitRepository::class)]
 class Produit
@@ -11,6 +16,7 @@ class Produit
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['produits:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
@@ -25,8 +31,16 @@ class Produit
     #[ORM\Column(length: 255)]
     private ?string $photo = null;
 
+    #[Vich\UploadableField(mapping: 'produits', fileNameProperty: 'photo')]
+     private ?File $imageFile = null;
+
     #[ORM\Column]
     private ?float $tarif = null;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
@@ -81,6 +95,17 @@ class Produit
         return $this;
     }
 
+    public function setImageFile(?File $imageFile = null): void
+    {
+        $this->imageFile = $imageFile;
+
+    }
+
+    public function getImageFile(): ?File
+    {
+        return $this->imageFile;
+    }
+
     public function getTarif(): ?float
     {
         return $this->tarif;
@@ -92,4 +117,6 @@ class Produit
 
         return $this;
     }
+
+
 }
