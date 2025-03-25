@@ -17,15 +17,13 @@ class ProduitRepository extends ServiceEntityRepository
     }
 
     public function findByCriteria(array $criteria): array {
-        $query = $this->createQueryBuilder('p');
+        $qb = $this->createQueryBuilder('p');
 
         foreach ($criteria as $field => $value) {
-            {
-                $query->andWhere("p.$field = :$field")
-                    ->setParameter($field, $value);
-            }
+            $qb->andWhere("p.$field LIKE :$field")
+                ->setParameter($field, "%$value%");
         }
 
-        return $query->getQuery()->getResult();
+        return $qb->getQuery()->getResult();
     }
 }
