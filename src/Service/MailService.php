@@ -19,7 +19,7 @@ class MailService
      */
     public function sendReservationEmail(array $reservation): void
     {
-        $body = "Chr(e) {$reservation['clientName']},\n\nVotre réservation pour le {$reservation['dateReservation']} a été confirmée.\n\nMerci de votre réservation.";
+        $body = "Chèr(e) {$reservation['clientName']},\n\nVotre réservation pour le {$reservation['dateReservation']} a été confirmée.\n\nMerci de votre réservation.";
             
     
         $email = (new Email())
@@ -37,7 +37,7 @@ class MailService
      */
     public function sendCancelReservationEmail(array $reservation): void
     {
-        $body = "Cher(e) " . $reservation['clientName'] . ",\n\nVotre annulation de la réservation pour le " . $reservation['dateReservation'] . " a été confirmée.\n\n";
+        $body = "Chèr(e) " . $reservation['clientName'] . ",\n\nVotre annulation de la réservation pour le " . $reservation['dateReservation'] . " a été confirmée.\n\n";
 
         $email = (new Email())
             ->from('no-reply@example.com')
