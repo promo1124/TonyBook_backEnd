@@ -7,6 +7,7 @@ use App\Form\ProduitType;
 use App\Repository\ProduitRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,28 +28,34 @@ final class ProduitController extends AbstractController
         return new JsonResponse($json, Response::HTTP_OK, [], true);
     }
 
-    #[Route('/new', name: 'app_produit_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, SerializerInterface $serializer): Response
+
+    #[Route('/new', name: 'app_produit_new', methods: ['POST'])]
+    public function new(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
+        // Récupération des données de la requête
+        $titre = $request->request->get('titre');
+        $description = $request->request->get('description');
+        $tarif = $request->request->get('tarif');
+
+        // Création du produit
         $produit = new Produit();
+        $produit->setTitre($titre);
+        $produit->setDescription($description);
+        $produit->setTarif($tarif);
 
-        $formData = json_decode($request->getContent());
-
-        $produit->setTitre($formData['titre']);
-        $produit->setDescription($formData['description']);
-        $produit->setPhoto($formData['photo']);
-        $produit->setTarif($formData['tarif']);
-
-        // return $this->render('produit/new.html.twig', [
-        //     'produit' => $produit,
-        //     'form' => $form,
-        // ]);
+        // Récupérer l'image depuis le formulaire (en utilisant VichUploader)
+        /** @var UploadedFile $imageFile */
+        $imageFile = $request->files->get('imageFile');
+        if ($imageFile) {
+            $produit->setImageFile($imageFile);
+        }
 
         $entityManager->persist($produit);
         $entityManager->flush();
 
-        return new JsonResponse(['message' => 'votre produit a bien été ajouté'], Response::HTTP_OK, [], true);
+        return new JsonResponse(['message' => 'Produit ajouté avec succès!'], Response::HTTP_CREATED);
     }
+
 
     #[Route('/{id}', name: 'app_produit_show', methods: ['GET', 'POST'])]
     public function show(Produit $produit, SerializerInterface $serializer): Response
