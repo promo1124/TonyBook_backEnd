@@ -1,32 +1,48 @@
 <?php
-
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class SecurityController extends AbstractController
 {
-    #[Route(path: '/login', name: 'app_login')]
-    public function login(AuthenticationUtils $authenticationUtils): Response
+    #[Route(path: '/api/login', name: 'api_login', methods: ['POST'])]
+    public function login(AuthenticationUtils $authenticationUtils, SerializerInterface $serializer): JsonResponse
     {
-        // get the login error if there is one
+        // Récupérer l'erreur de connexion s'il y en a une
         $error = $authenticationUtils->getLastAuthenticationError();
 
-        // last username entered by the user
-        $lastUsername = $authenticationUtils->getLastUsername();
+        if ($error) {
+            return new JsonResponse([
+                'message' => 'Invalid credentials.',
+                'error' => $error->getMessage(),
+            ], JsonResponse::HTTP_UNAUTHORIZED);
+        }
 
-        return $this->render('security/login.html.twig', [
-            'last_username' => $lastUsername,
-            'error' => $error,
-        ]);
+        // Récupérer l'utilisateur authentifié
+        $user = $this->getUser();
+
+        // Vérifier si l'utilisateur est null (non authentifié)
+        if (!$user) {
+            return new JsonResponse([
+                'message' => 'User not authenticated.',
+            ], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        // Sérialiser l'utilisateur en JSON
+        $userData = $serializer->serialize($user, 'json', ['groups' => ['user:read']]);
+
+        return new JsonResponse($userData, JsonResponse::HTTP_OK, [], true);
     }
 
-    #[Route(path: '/logout', name: 'app_logout')]
-    public function logout(): void
+    #[Route(path: '/api/logout', name: 'api_logout', methods: ['POST'])]
+    public function logout(): JsonResponse
     {
-        throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
+        // Symfony intercepte automatiquement cette route via le firewall
+        return new JsonResponse(['message' => 'Logged out successfully.']);
     }
 }
