@@ -16,6 +16,11 @@ class Reservation
         private ?int $id = null;
     
         #[Groups(['reservation:read'])]
+        #[ORM\Column(length: 255)]
+        private ?string $clientName = null;
+
+
+        #[Groups(['reservation:read'])]
         #[ORM\Column(type: Types::DATETIME_MUTABLE)]
         private ?\DateTimeInterface $dateReservation = null;
     
@@ -35,6 +40,19 @@ class Reservation
         private ?Produit $produit = null;
     
         public function getId(): ?int { return $this->id; }
+
+         public function getClientName(): ?string
+        {
+            return $this->clientName;
+        }
+
+        public function setClientName(string $clientName): static
+        {
+            $this->clientName = $clientName;
+
+            return $this;
+        }
+
         public function getDateReservation(): ?\DateTimeInterface { return $this->dateReservation; }
         public function setDateReservation(\DateTimeInterface $dateReservation): static { 
             $this->dateReservation = $dateReservation; 

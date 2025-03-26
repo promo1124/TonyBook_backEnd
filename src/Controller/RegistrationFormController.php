@@ -33,12 +33,21 @@ class RegistrationFormController extends AbstractController
          * Vérifier si l'email existe déjà
          */
         $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => $data['email']]);
+<<<<<<< HEAD
 
         if ($existingUser) {
             return new JsonResponse(['message' => 'Cet email est déjà utilisé'], Response::HTTP_CONFLICT);
         }
 
 
+=======
+ 
+        if ($existingUser) {
+            return new JsonResponse(['message' => 'Cet email est déjà utilisé'], Response::HTTP_CONFLICT);
+        }
+ 
+ 
+>>>>>>> a2ec422f45a9ae6222128ee5b4171078f2baebde
         // Création du nouvel utilisateur
         $user = new User();
         $user->setFirstname($data['firstname']);
@@ -49,7 +58,12 @@ class RegistrationFormController extends AbstractController
         $user->setTown($data['town']);
         $user->setCountry($data['country']);
         $user->setPhoneNumber($data['phoneNumber']);
+<<<<<<< HEAD
 
+=======
+ 
+ 
+>>>>>>> a2ec422f45a9ae6222128ee5b4171078f2baebde
         // encryptage du mot de passe
         $user->setPassword($userPasswordHasher->hashPassword($user, $data['password']));
         $entityManager->persist($user);
