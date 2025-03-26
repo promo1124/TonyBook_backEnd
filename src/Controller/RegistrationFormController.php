@@ -19,16 +19,27 @@ class RegistrationFormController extends AbstractController
 
 
     #[Route('/register', name: 'app_register', methods: ['POST'])]
- 
+
     public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): Response
     {
         // Récupération des données JSON envoyées par React
         $data = json_decode($request->getContent(), true);
- 
+
         if (!$data) {
             return new JsonResponse(['message' => 'User not registered'], Response::HTTP_BAD_REQUEST);
         }
- 
+
+        /**
+         * CONTRAINTE:
+         * Vérifier si l'email existe déjà
+         */
+        $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => $data['email']]);
+
+        if ($existingUser) {
+            return new JsonResponse(['message' => 'Cet email est déjà utilisé'], Response::HTTP_CONFLICT);
+        }
+
+
         // Création du nouvel utilisateur
         $user = new User();
         $user->setFirstname($data['firstname']);
@@ -39,12 +50,12 @@ class RegistrationFormController extends AbstractController
         $user->setTown($data['town']);
         $user->setCountry($data['country']);
         $user->setPhoneNumber($data['phoneNumber']);
- 
+
         /**
          * ON N'utilise plus de formulaire symfony
          * les données sont envoyées par REACT
          */
-       
+
         /*$form = $this->createForm(GlobalRegistrationFormType::class, $user);
             // $form->handleRequest($request);
             $form->submit($data);
@@ -57,15 +68,12 @@ class RegistrationFormController extends AbstractController
                
             return new JsonResponse(['message' => 'User registered successfully'], Response::HTTP_CREATED);
         }*/
- 
+
         // encryptage du mot de passe
         $user->setPassword($userPasswordHasher->hashPassword($user, $data['password']));
         $entityManager->persist($user);
         $entityManager->flush();
- 
+
         return new JsonResponse(['message' => 'User registered successfully'], Response::HTTP_CREATED);
     }
-        
 }
-    
-
