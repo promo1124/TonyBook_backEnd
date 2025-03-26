@@ -20,13 +20,23 @@ class RegistrationFormController extends AbstractController
 
     #[Route('/register', name: 'app_register', methods: ['POST'])]
  
-    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): Response
+    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): JsonResponse
     {
         // Récupération des données JSON envoyées par React
         $data = json_decode($request->getContent(), true);
  
         if (!$data) {
             return new JsonResponse(['message' => 'User not registered'], Response::HTTP_BAD_REQUEST);
+        }
+
+        /**
+         * CONTRAINTE: 
+         * Vérifier si l'email existe déjà
+         */
+        $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => $data['email']]);
+
+        if ($existingUser) {
+            return new JsonResponse(['message' => 'Cet email est déjà utilisé'], Response::HTTP_CONFLICT);
         }
  
         // Création du nouvel utilisateur
