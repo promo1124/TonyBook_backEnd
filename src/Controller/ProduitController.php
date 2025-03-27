@@ -18,7 +18,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 #[Route('/produit')]
 final class ProduitController extends AbstractController
 {
-    #[Route(name: 'app_produit_index', methods: ['GET'])]
+    #[Route('/', name: 'app_produit_index', methods: ['GET'])]
     public function index(ProduitRepository $produitRepository, SerializerInterface $serializer): Response
     {
         // return $this->render('produit/index.html.twig', [

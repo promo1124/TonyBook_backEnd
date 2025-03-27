@@ -27,19 +27,23 @@ class Produit
     private ?string $titre = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['produits:read'])]
     private ?string $description = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['produits:read'])]
     private ?string $photo = null;
 
 
     #[Vich\UploadableField(mapping: 'produits', fileNameProperty: 'photo')]
+    #[Groups(['produits:read'])]
     private ?File $imageFile = null;
 
     #[ORM\Column]
+    #[Groups(['produits:read'])]
     private ?float $tarif = null;
 
     /**
