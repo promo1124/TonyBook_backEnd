@@ -52,12 +52,6 @@ class Produit
     #[ORM\OneToMany(targetEntity: Reservation::class, mappedBy: 'produits')]
     private Collection $reservations;
 
-    /**
-     * @var Collection<int, Sejour>
-     */
-    #[ORM\OneToMany(targetEntity: Sejour::class, mappedBy: 'produit')]
-    private Collection $sejours;
-
     #[Groups(['produits:read'])]
     #[ORM\ManyToOne(inversedBy: 'produits')]
     private ?Categorie $categorie = null;
@@ -66,9 +60,9 @@ class Produit
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->reservations = new ArrayCollection();
-        $this->sejours = new ArrayCollection();
     }
 
+    #[Groups(['produits:read'])]
     public function getId(): ?int
     {
         return $this->id;
@@ -175,36 +169,6 @@ class Produit
     }
 
 
-
-    /**
-     * @return Collection<int, Sejour>
-     */
-    public function getSejours(): Collection
-    {
-        return $this->sejours;
-    }
-
-    public function addSejour(Sejour $sejour): static
-    {
-        if (!$this->sejours->contains($sejour)) {
-            $this->sejours->add($sejour);
-            $sejour->setProduit($this);
-        }
-
-        return $this;
-    }
-
-    public function removeSejour(Sejour $sejour): static
-    {
-        if ($this->sejours->removeElement($sejour)) {
-            // set the owning side to null (unless already changed)
-            if ($sejour->getProduit() === $this) {
-                $sejour->setProduit(null);
-            }
-        }
-
-        return $this;
-    }
 
     public function getCategorie(): ?Categorie
     {
