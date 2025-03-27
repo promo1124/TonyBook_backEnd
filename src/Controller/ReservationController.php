@@ -3,10 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Reservation;
-use App\Entity\Sejour;
+
 use App\Repository\ReservationsRepository;
-use App\Repository\SejourRepository;
+
 use App\Service\MailService;
+use App\Service\ReservationMailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -41,35 +42,16 @@ class ReservationController extends AbstractController
     /*****************CREATE*******************/
     /*****************************************/
     #[Route('/reservation/new', methods: ['POST'])]
-    public function createReservation(Request $request, EntityManagerInterface $entityManager, SejourRepository $sejourRepository): Response
+    public function createReservation(Request $request, EntityManagerInterface $entityManager, MailService $mailService): Response
     {
         $data = json_decode($request->getContent(), true);
 
-        // Vérification des données reçues
-        if (!isset($data['dateReservation'], $data['sejourId'])) {
-            return new JsonResponse(['error' => 'Données invalides'], Response::HTTP_BAD_REQUEST);
-        }
-
-        // Récupérer le séjour existant
-        $sejour = $sejourRepository->find($data['sejourId']);
         
-        if (!$sejour) {
-            return new JsonResponse(['error' => 'Séjour non trouvé'], Response::HTTP_NOT_FOUND);
-        }
-
         // Créer une nouvelle réservation
         $reservation = new Reservation();
         $reservation->setDateReservation(new \DateTime($data['dateReservation']));
         $reservation->setStatus($data['status'] ?? 'En attente');
-        $reservation->setSejour($sejour); // Lier le séjour existant
-
-        if (!isset($data['sejourId']) || !$sejour) {
-            $sejour = new Sejour();
-            $sejour->setDateDebut(new \DateTime($data['dateDebut'])); 
-            $sejour->setDateFin(new \DateTime($data['dateFin']));
-            $sejour->setProduit($data['produit']); 
-            $entityManager->persist($sejour);
-        }
+    
 
         $entityManager->persist($reservation);
         $entityManager->flush();
@@ -89,54 +71,53 @@ class ReservationController extends AbstractController
     /*****************UPDATE*******************/
     /*****************************************/
     #[Route('/reservation/{id}', methods: ['PUT'])]
-    public function updateReservation(Reservation $reservation, Request $request, EntityManagerInterface $entityManager, SejourRepository $sejourRepository,
-     MailService $mailService): Response
+    public function updateReservation(Reservation $reservation, Request $request, EntityManagerInterface $entityManager,  MailService $mailService, ReservationMailService $reservationMailService): Response
     {
         $data = json_decode($request->getContent(), true);
-
-        // Mettre à jour la réservation
-        if (isset($data['dateReservation'])) {
-            $reservation->setDateReservation(new \DateTime($data['dateReservation']));
+    
+        // changement de statut de la réservation
+        if ($reservation->getStatus() !== 'En attente') {
+            return new JsonResponse(['message' => 'Réservation non modifiable'], Response::HTTP_BAD_REQUEST);
         }
+
+        // Mise à jour du statut de la réservation
         if (isset($data['status'])) {
+            //définit le statut
+            $status = $data['status'];
+            //Mise à jour du statut
             $reservation->setStatus($data['status']);
-            $reservation->setStatus($data['status']);
-
-            // Envoi d'un email si la réservation est annulée 
-            if ($data['status'] === 'Annuler') {
-                $mailService->sendCancelReservationEmail([
-                    'clientName' => $reservation->getClientName(),
-                    'email' => $data['email'],
-                    'dateReservation' => $reservation->getDateReservation()->format('Y-m-d H:i:s'),
-                ]);
+    
+            // Envoi d'un email si la réservation est validée ou refusée
+            if ($status === 'Validée') {
+                $reservation->setStatus($status);
+                $reservationMailService->validerReservation($reservation); // Envoi de l'email de validation
+            } elseif ($status === 'Déclinée') {
+                $reservation->setStatus($status);
+                $reservationMailService->refuserReservation($reservation); // Envoi de l'email de rejet
+                $entityManager->remove($reservation);
+            } else {
+                return new JsonResponse(['message' => 'Status invalide'], Response::HTTP_BAD_REQUEST);
             }
-        }
-        if (isset($data['sejourId'])) {
-            $sejour = $sejourRepository->find($data['sejourId']);
-            if ($sejour) {
-                $reservation->setSejour($sejour); // Mettre à jour le séjour associé
-            }
+        } else {
+            return new JsonResponse(['message' => 'Status manquant'], Response::HTTP_BAD_REQUEST);
         }
 
         $entityManager->flush();
-
         return new JsonResponse(['message' => 'Réservation mise à jour'], Response::HTTP_OK);
     }
+
 
     /*****************DELETE*******************/
     /*****************************************/
     #[Route('/reservation/{id}', methods: ['DELETE'])]
-    public function deleteReservation(Reservation $reservation, EntityManagerInterface $entityManager, MailService $mailService): Response
+    public function deleteReservation(Reservation $reservation, EntityManagerInterface $entityManager, ReservationMailService $reservationMailService): Response
     {
         // Envoi d'un email si la réservation est annulée avant suppression
-        $mailService->sendCancelReservationEmail([
-            'clientName' => $reservation->getClientName(),
-            'email' => 'email_du_client@exemple.com', // Remplacez par l'email réel
-            'dateReservation' => $reservation->getDateReservation()->format('Y-m-d H:i:s'),
-        ]);
+        $reservationMailService->refuserReservation($reservation);
+
         $entityManager->remove($reservation);
         $entityManager->flush();
-
+    
         return new JsonResponse(['message' => 'Réservation supprimée'], Response::HTTP_OK);
     }
 }
