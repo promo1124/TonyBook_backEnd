@@ -1,48 +1,60 @@
 <?php
+
 namespace App\Controller;
 
+use App\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
-use Symfony\Component\Serializer\SerializerInterface;
 
 class SecurityController extends AbstractController
 {
-    #[Route(path: '/api/login', name: 'api_login', methods: ['POST'])]
-    public function login(AuthenticationUtils $authenticationUtils, SerializerInterface $serializer): JsonResponse
+    #[Route(path: '/login', name: 'app_login')]
+    // public function login(AuthenticationUtils $authenticationUtils): Response
+    // {
+    //     // get the login error if there is one
+    //     $error = $authenticationUtils->getLastAuthenticationError();
+
+    //     // last username entered by the user
+    //     $lastUsername = $authenticationUtils->getLastUsername();
+
+    //     return $this->render('security/login.html.twig', [
+    //         'last_username' => $lastUsername,
+    //         'error' => $error,
+    //     ]);
+    // }
+    public function login(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher)
     {
-        // Récupérer l'erreur de connexion s'il y en a une
-        $error = $authenticationUtils->getLastAuthenticationError();
+        $data = json_decode($request->getContent(), true);
 
-        if ($error) {
-            return new JsonResponse([
-                'message' => 'Invalid credentials.',
-                'error' => $error->getMessage(),
-            ], JsonResponse::HTTP_UNAUTHORIZED);
+        if (!isset($data['email'], $data['password'])) {
+            return new JsonResponse(['message' => 'Email et mot de passe requis'], 400);
         }
 
-        // Récupérer l'utilisateur authentifié
-        $user = $this->getUser();
+        $user = $entityManager->getRepository(User::class)->findOneBy(['email' => $data['email']]);
 
-        // Vérifier si l'utilisateur est null (non authentifié)
-        if (!$user) {
-            return new JsonResponse([
-                'message' => 'User not authenticated.',
-            ], JsonResponse::HTTP_UNAUTHORIZED);
+        if (!$user || !$passwordHasher->isPasswordValid($user, $data['password'])) {
+            return new JsonResponse(['message' => 'Identifiants incorrects'], 401);
         }
 
-        // Sérialiser l'utilisateur en JSON
-        $userData = $serializer->serialize($user, 'json', ['groups' => ['user:read']]);
-
-        return new JsonResponse($userData, JsonResponse::HTTP_OK, [], true);
+        return new JsonResponse(['message' => 'Connexion réussie', 'user' => [
+        'id' => $user->getId(),
+        'email' => $user->getEmail(),
+        'nom' => $user->getFirstname()]
+        ]);
     }
 
-    #[Route(path: '/api/logout', name: 'api_logout', methods: ['POST'])]
+    #[Route(path: '/logout', name: 'app_logout')]
     public function logout(): JsonResponse
     {
-        // Symfony intercepte automatiquement cette route via le firewall
-        return new JsonResponse(['message' => 'Logged out successfully.']);
+            return new JsonResponse(['message' => 'Déconnexion réussie'], Response::HTTP_OK);
+
+        // throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
     }
+
 }

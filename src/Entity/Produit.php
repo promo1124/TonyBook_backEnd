@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ProduitRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 // use PhpParser\Node\Scalar\MagicConst\File;
 
@@ -11,6 +13,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: ProduitRepository::class)]
+#[Vich\Uploadable]
 class Produit
 {
     #[ORM\Id]
@@ -19,27 +22,51 @@ class Produit
     #[Groups(['produits:read'])]
     private ?int $id = null;
 
+    #[Groups(['produits:read'])]
     #[ORM\Column(length: 100)]
     private ?string $titre = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['produits:read'])]
     private ?string $description = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['produits:read'])]
     private ?string $photo = null;
 
+
     #[Vich\UploadableField(mapping: 'produits', fileNameProperty: 'photo')]
-     private ?File $imageFile = null;
+    #[Groups(['produits:read'])]
+    private ?File $imageFile = null;
 
     #[ORM\Column]
+    #[Groups(['produits:read'])]
     private ?float $tarif = null;
+
+    /**
+     * @var Collection<int, Reservation>
+     */
+    #[ORM\OneToMany(targetEntity: Reservation::class, mappedBy: 'produits')]
+    private Collection $reservations;
+
+    /**
+     * @var Collection<int, Sejour>
+     */
+    #[ORM\OneToMany(targetEntity: Sejour::class, mappedBy: 'produit')]
+    private Collection $sejours;
+
+    #[Groups(['produits:read'])]
+    #[ORM\ManyToOne(inversedBy: 'produits')]
+    private ?Categorie $categorie = null;
 
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
+        $this->reservations = new ArrayCollection();
+        $this->sejours = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -98,7 +125,6 @@ class Produit
     public function setImageFile(?File $imageFile = null): void
     {
         $this->imageFile = $imageFile;
-
     }
 
     public function getImageFile(): ?File
@@ -118,5 +144,83 @@ class Produit
         return $this;
     }
 
+    /**
+     * @return Collection<int, Reservation>
+     */
+    public function getReservations(): Collection
+    {
+        return $this->reservations;
+    }
 
+    public function addReservation(Reservation $reservation): static
+    {
+        if (!$this->reservations->contains($reservation)) {
+            $this->reservations->add($reservation);
+            $reservation->setProduit($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReservation(Reservation $reservation): static
+    {
+        if ($this->reservations->removeElement($reservation)) {
+            // set the owning side to null (unless already changed)
+            if ($reservation->getProduit() === $this) {
+                $reservation->setProduit(null);
+            }
+        }
+
+        return $this;
+    }
+
+
+
+    /**
+     * @return Collection<int, Sejour>
+     */
+    public function getSejours(): Collection
+    {
+        return $this->sejours;
+    }
+
+    public function addSejour(Sejour $sejour): static
+    {
+        if (!$this->sejours->contains($sejour)) {
+            $this->sejours->add($sejour);
+            $sejour->setProduit($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSejour(Sejour $sejour): static
+    {
+        if ($this->sejours->removeElement($sejour)) {
+            // set the owning side to null (unless already changed)
+            if ($sejour->getProduit() === $this) {
+                $sejour->setProduit(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getCategorie(): ?Categorie
+    {
+        return $this->categorie;
+    }
+
+    public function setCategorie(?Categorie $categorie): static
+    {
+        $this->categorie = $categorie;
+
+        return $this;
+    }
+
+    #[Groups(['produits:read'])]
+    public function getCategorieName(): ?string
+    {
+        return $this->categorie ? $this->categorie->getName() : null;
+    }
 }
