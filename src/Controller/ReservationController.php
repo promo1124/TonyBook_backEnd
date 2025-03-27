@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Reservation;
 use App\Repository\ProduitRepository;
 use App\Repository\ReservationsRepository;
-use App\Repository\SejourRepository;
+use App\Repository\UserRepository;
 use App\Service\MailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -41,24 +41,28 @@ class ReservationController extends AbstractController
     /*****************CREATE*******************/
     /*****************************************/
     #[Route('/reservation/new', methods: ['POST'])]
-    public function createReservation(Request $request, EntityManagerInterface $entityManager, MailService $mailService, ProduitRepository $produitRepository): Response
+    public function createReservation(Request $request, EntityManagerInterface $entityManager, MailService $mailService, ProduitRepository $produitRepository, UserRepository $userRepository): Response
     {
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['produit_id'])) {
+        if (!isset($data['produitId'])) {
             return new JsonResponse(['error' => 'Le produit est requis'], Response::HTTP_BAD_REQUEST);
         }
 
-        $produit = $produitRepository->find($data['produit_id']);
+        $produit = $produitRepository->find($data['produitId']);
         if (!$produit) {
             return new JsonResponse(['error' => 'Produit non trouvé'], Response::HTTP_NOT_FOUND);
         }
+
+        $user = $userRepository->find($data["user"]) ;
+
         // Créer une nouvelle réservation
         $reservation = new Reservation();
-        $reservation->setDateDebut(new \DateTime($data['dateDebut']));
-        $reservation->setDateFin(new \DateTime($data['dateFin']));
+        $reservation->setDateDebut(new \DateTime($data['dateD']));
+        $reservation->setDateFin(new \DateTime($data['dateF']));
         $reservation->setStatus($data['status'] ?? 'En attente');
         $reservation->setProduit($produit); // Associer le produit
+        $reservation->setUser($user); 
 
         $entityManager->persist($reservation);
         $entityManager->flush();
