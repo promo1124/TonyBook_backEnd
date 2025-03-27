@@ -1,0 +1,60 @@
+{# filepath: templates/reservation/facture.html.twig #}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Facture</title>
+    <link rel="stylesheet" href="/public/facture.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Facture</h1>
+        {# Ajouter un umero de resa sur la table ? a changer avec reservation.numeroReservation #}
+        <p>Réservation n° {{ reservation.id }}</p> 
+    </div>
+
+    <div class="details">
+        <h2>Détails de la réservation</h2>
+        <table>
+            <tr>
+                <th>Réservé le  :</th>
+                <td>{{ reservation.dateReservation|date('d/m/Y') }}</td>
+            </tr>
+            <tr>
+                <th>Statut :</th>
+                <td>{{ reservation.status }}</td>
+            </tr>
+            <tr>
+                <th>Client :</th>
+                <td>{{ reservation.user.firstname }} {{ reservation.user.lastname }}</td>
+            </tr>
+            <tr>
+                <th>Email :</th>
+                <td>{{ reservation.user.email }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="details">
+        <h2>Détails de votre séjour</h2>
+        <table>
+            <tr>
+                <th>Produit :</th>
+                <td>{{ reservation.sejour.produit }}</td>
+            </tr>
+            <tr>
+                <th>Date de début :</th>
+                <td>{{ reservation.sejour.dateDebut|date('d/m/Y') }}</td>
+            </tr>
+            <tr>
+                <th>Date de fin :</th>
+                <td>{{ reservation.sejour.dateFin|date('d/m/Y') }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="total">
+        <p>Total : {{ reservation.sejour.tarif }} €</p>
+    </div>
+</body>
+</html>

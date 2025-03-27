@@ -15,6 +15,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 
+use App\Service\PdfService;
+
 class ReservationController extends AbstractController
 {
 
@@ -41,7 +43,7 @@ class ReservationController extends AbstractController
     /*****************CREATE*******************/
     /*****************************************/
     #[Route('/reservation/new', methods: ['POST'])]
-    public function createReservation(Request $request, EntityManagerInterface $entityManager, SejourRepository $sejourRepository): Response
+    public function createReservation(Request $request, EntityManagerInterface $entityManager, SejourRepository $sejourRepository, MailService $mailService): Response
     {
         $data = json_decode($request->getContent(), true);
 
@@ -139,4 +141,31 @@ class ReservationController extends AbstractController
 
         return new JsonResponse(['message' => 'Réservation supprimée'], Response::HTTP_OK);
     }
+
+
+    /*********************** PDF  *************************/
+    /***********************   ***************************/
+
+    #[Route('/reservation/{id}/facture', name: 'generate_facture', methods: ['GET'])]
+    public function generateFacture(Reservation $reservation, PdfService $pdfService): Response
+    {
+        // Vérifiez si la réservation existe
+        if (!$reservation) {
+            return new JsonResponse(['error' => 'Réservation non trouvée'], Response::HTTP_NOT_FOUND);
+        }
+
+        // Générer le contenu HTML pour la facture
+        $html = $this->renderView('reservation/facture.html.twig', [
+            'reservation' => $reservation,
+        ]);
+
+        // Générer le fichier PDF
+        $pdfPath = $pdfService->generatePdf($html, 'facture_' . $reservation->getId());
+
+        // Retourner le chemin du fichier PDF ou le fichier lui-même
+        return new JsonResponse(['message' => 'Facture générée avec succès', 'pdfPath' => $pdfPath], Response::HTTP_OK);
+    }
+
+    /*********************** PDF  *************************/
+    /***********************   ***************************/
 }
