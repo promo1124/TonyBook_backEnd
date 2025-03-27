@@ -46,21 +46,32 @@ class ReservationController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
+        if (!isset($data['produitId'])) {
+            return new JsonResponse(['error' => 'Le produit est requis'], Response::HTTP_BAD_REQUEST);
+        }
+    
+        $produit = $produitRepository->find($data['produitId']);
+        if (!$produit) {
+            return new JsonResponse(['error' => 'Produit non trouvé'], Response::HTTP_NOT_FOUND);
+        }
+    
+        $user = $userRepository->find($data["user"]) ;
+
         
         // Créer une nouvelle réservation
         $reservation = new Reservation();
-        $reservation->setDateReservation(new \DateTime($data['dateReservation']));
+        $reservation->setDateDebut(new \DateTime($data['dateD']));
+        $reservation->setDateFin(new \DateTime($data['dateF']));
         $reservation->setStatus($data['status'] ?? 'En attente');
-        
-    
-
+        $reservation->setProduit($produit); // Associer le produit
+        $reservation->setUser($user);
+                
         $entityManager->persist($reservation);
         $entityManager->flush();
 
         // Envoi d'un email de confirmation si l'email est renseigné
         if (isset($data['email'])) {
             $mailService->sendReservationEmail([
-                'clientName' => $data['clientName'],
                 'email' => $data['email'],
                 'dateReservation' => $data['dateReservation'],
             ]);
@@ -107,7 +118,7 @@ class ReservationController extends AbstractController
         return new JsonResponse(['message' => 'Réservation mise à jour'], Response::HTTP_OK);
     }
 
-    
+
 
     /*****************DELETE*******************/
     /*****************************************/
