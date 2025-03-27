@@ -70,7 +70,6 @@ class ReservationController extends AbstractController
         // Envoi d'un email de confirmation si l'email est renseigné
         if (isset($data['email'])) {
             $mailService->sendReservationEmail([
-                'clientName' => $data['clientName'],
                 'email' => $data['email'],
                 'dateReservation' => $data['dateReservation'],
             ]);
