@@ -18,7 +18,7 @@
         <table>
             <tr>
                 <th>Réservé le  :</th>
-                <td>{{ reservation.dateReservation|date('d/m/Y') }}</td>
+                <td>{{ reservation.date_reservation|date('d/m/Y') }}</td>
             </tr>
             <tr>
                 <th>Statut :</th>
@@ -40,21 +40,37 @@
         <table>
             <tr>
                 <th>Produit :</th>
-                <td>{{ reservation.sejour.produit }}</td>
+                <td>{{ reservation.produit.titre }}</td>
             </tr>
             <tr>
                 <th>Date de début :</th>
-                <td>{{ reservation.sejour.dateDebut|date('d/m/Y') }}</td>
+                <td>{{ reservation.dateDebut|date('d/m/Y') }}</td>
             </tr>
             <tr>
                 <th>Date de fin :</th>
-                <td>{{ reservation.sejour.dateFin|date('d/m/Y') }}</td>
+                <td>{{ reservation.dateFin|date('d/m/Y') }}</td>
+            </tr>
+            <tr>
+                <th>Nombre de jours :</th>
+                <td>{{ reservation.nb_jours }}</td>
+            </tr>
+            <tr>
+                <th>Prix par nuit :</th>
+                <td>{{ reservation.tarif }}</td>
             </tr>
         </table>
     </div>
 
     <div class="total">
-        <p>Total : {{ reservation.sejour.tarif }} €</p>
+    {# A ajouter apres modif de la DB dans l'entity Reservation #}
+    {# public function getTotalTarif(): float
+    {
+    if ($this->produit && $this->nb_jours) {
+        return $this->produit->getTarif() * $this->nb_jours;
+    }
+    }
+     #}
+        <p>Total : {{ reservation.getTotalTarif }} €</p>
     </div>
 </body>
 </html>

@@ -82,6 +82,7 @@ class Reservation
             $this->produit = $produit; 
             return $this; 
         }
+
     }
     
 
