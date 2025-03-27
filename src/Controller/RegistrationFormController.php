@@ -39,7 +39,17 @@ class RegistrationFormController extends AbstractController
         $user->setTown($data['town']);
         $user->setCountry($data['country']);
         $user->setPhoneNumber($data['phoneNumber']);
- 
+
+        /**
+         * CONTRAINTE:
+         * Vérifier si l'email existe déjà
+         */
+        $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => $data['email']]);
+
+        if ($existingUser) {
+            return new JsonResponse(['message' => 'Cet email est déjà utilisé'], Response::HTTP_CONFLICT);
+        }
+        
         /**
          * ON N'utilise plus de formulaire symfony
          * les données sont envoyées par REACT
