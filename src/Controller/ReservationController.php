@@ -51,6 +51,7 @@ class ReservationController extends AbstractController
         $reservation = new Reservation();
         $reservation->setDateReservation(new \DateTime($data['dateReservation']));
         $reservation->setStatus($data['status'] ?? 'En attente');
+        
     
 
         $entityManager->persist($reservation);
@@ -71,7 +72,7 @@ class ReservationController extends AbstractController
     /*****************UPDATE*******************/
     /*****************************************/
     #[Route('/reservation/{id}', methods: ['PUT'])]
-    public function updateReservation(Reservation $reservation, Request $request, EntityManagerInterface $entityManager,  MailService $mailService, ReservationMailService $reservationMailService): Response
+    public function updateReservation(Reservation $reservation, Request $request, EntityManagerInterface $entityManager, ReservationMailService $reservationMailService): Response
     {
         $data = json_decode($request->getContent(), true);
     
