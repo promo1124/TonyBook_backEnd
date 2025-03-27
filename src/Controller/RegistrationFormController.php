@@ -17,7 +17,7 @@ class RegistrationFormController extends AbstractController
 {
 
 
-    #[Route('/register', name: 'app_register', methods: ['POST'])]
+    #[Route('/register', name: 'app_register', methods: ["GET",'POST'])]
  
     public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): JsonResponse
     {
