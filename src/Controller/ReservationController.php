@@ -107,6 +107,7 @@ class ReservationController extends AbstractController
         return new JsonResponse(['message' => 'Réservation mise à jour'], Response::HTTP_OK);
     }
 
+    
 
     /*****************DELETE*******************/
     /*****************************************/
